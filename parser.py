@@ -18,14 +18,17 @@ class Parser:
 
     def __read_files(self):
         for file in self.files:
-            with open(file, newline='') as csv_file:
+            with open(file) as csv_file:
                 reader = csv.DictReader(csv_file, delimiter=',')
                 prev_emotion_id = ""
                 is_practice = False
                 photo_num = 0
+                new_rows = []
+
                 for row in reader:
-                    curr_emotion, emotion_id = self.__convert_filename_to_emotion_and_id(row['stimFile'])
+                    curr_emotion, emotion_id, percent = self.__convert_filename_to_emotion_and_id(row['stimFile'])
                     new_row['Latency'] += self.image_presentation_time
+                    new_row['Percent Emotion'] = percent
 
                     if emotion_id != "" and (prev_emotion_id == "" or emotion_id != prev_emotion_id):
                         # we entered a new trial
@@ -43,12 +46,18 @@ class Parser:
                         new_row['Latency'] += row['space_pressed_practice.rt']
                     elif row['space_pressed.rt'] is not None:
                         new_row['Latency'] += row['space_pressed.rt']
+                    elif row['space_pressed_2.rt'] is not None:
+                        new_row['Latency'] += row['space_pressed_2.rt']
 
                     if row['key_resp.keys'] is not None and row['key_resp.rt'] is not None:
                         new_row['Latency'] += row['key_resp.rt']
                         new_row['Response'] = row['key_resp.keys']
                         new_row['Accuracy'] = self.__determine_accuracy(curr_emotion, row['key_resp.keys'])
+                        new_row['Photonum'] = photo_num
+                        new_rows.append(new_row)
 
+
+                    photo_num += 1
 
     def __init_new_row(self):
         return {'Participant': "", 'trial': "", 'ID': "", 'Stimulus Gender': "",
@@ -59,10 +68,11 @@ class Parser:
         if filename is None:
             return "", ""
         else:
-            emotion_name = filename.split("/")[-1].split(".")[0]
-            emotion_id = emotion_name.split("_")[0]
-            emotion = emotion_name.split("_")[1]
-            return emotion, emotion_id
+            emotion_file_path = filename.split("/")[-1].split(".")[0]
+            emotion_id = emotion_file_path.split("_")[0]
+            emotion = emotion_file_path.split("_")[1]
+            percent = emotion_file_path.split("_")[-1]
+            return emotion, emotion_id, percent
 
     def __determine_gender(self, emotion_id):
         return stimulus_info[emotion_id]['gender']
@@ -87,11 +97,16 @@ class Parser:
 
         return results
 
-
-
     def __construct_new_csv(self, file):
         with open(file.split('.')[0] + '-processed.csv', 'w', newline='') as csv_file:
             writer = csv.writer(csv_file, delimiter=' ')
 
 
+    def __write_new_rows(new_rows, file):
+        new_file_name = file + '-processed'
+        with open(file + '-processed', 'w') as csv_file:
+            writer = csv.DictWriter(new_file_name, fieldnames=self.headers)
+            writer.writeheader()
 
+            for row in new_rows:
+                writer.writerow(row)

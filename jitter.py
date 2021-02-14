@@ -6,7 +6,7 @@ def create_jitter(file_name, file_prefix, sequence):
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         for i in sequence:
-            writer.writerow({'stimFile': 'resources/{file_prefix}_{i}'.format(file_prefix=file_prefix, i=i)})
+            writer.writerow({'stimFile': 'resources/{file_prefix}_{i}.jpg'.format(file_prefix=file_prefix, i=i)})
 
 
 

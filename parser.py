@@ -20,48 +20,38 @@ class Parser:
         for file in self.files:
             with open(file) as csv_file:
                 reader = csv.DictReader(csv_file, delimiter=',')
-                prev_emotion_id = ""
-                is_practice = False
-                photo_num = 0
                 new_rows = []
+                prev_emotion_id = ""
+                new_row = self.__init_new_row()
 
                 for row in reader:
-                    curr_emotion, emotion_id, percent = self.__convert_filename_to_emotion_and_id(row['stimFile'])
-                    new_row['Latency'] += self.image_presentation_time
-                    new_row['Percent Emotion'] = percent
-
-                    if emotion_id != "" and (prev_emotion_id == "" or emotion_id != prev_emotion_id):
-                        # we entered a new trial
-                        prev_emotion_id = emotion_id
-                        new_row = self.__init_new_row()
-                        new_row['ID'] = emotion_id
-                        new_row['Stimulus Emotion'] = curr_emotion
-                        new_row['Stimulus Gender'] = self.__determine_gender(curr_emotion)
-                        new_row['Stimulus Ethnicity'] = self.__determine_ethnicity(emotion_id)
-                        photo_num = 1
-
-
-                    if row['space_pressed_practice.rt'] is not None:
-                        is_practice = True
-                        new_row['Latency'] += row['space_pressed_practice.rt']
-                    elif row['space_pressed.rt'] is not None:
-                        new_row['Latency'] += row['space_pressed.rt']
-                    elif row['space_pressed_2.rt'] is not None:
-                        new_row['Latency'] += row['space_pressed_2.rt']
-
-                    if row['key_resp.keys'] is not None and row['key_resp.rt'] is not None:
-                        new_row['Latency'] += row['key_resp.rt']
+                    if row['space_pressed_practice.rt'] != '':
+                        new_row['Latency'] += float(row['space_pressed_practice.rt'])
+                    elif row['space_pressed.rt'] != '':
+                        new_row['Latency'] += float(row['space_pressed.rt'])
+                    elif row['space_pressed_2.rt'] != '':
+                        new_row['Latency'] += float(row['space_pressed_2.rt'])
+                    elif row['key_resp.keys'] != '' and row['key_resp.rt'] != '':
+                        new_row['Latency'] += float(row['key_resp.rt'])
                         new_row['Response'] = row['key_resp.keys']
                         new_row['Accuracy'] = self.__determine_accuracy(curr_emotion, row['key_resp.keys'])
-                        new_row['Photonum'] = photo_num
                         new_rows.append(new_row)
+                        new_row = self.__init_new_row()
+                    else:
+                        curr_emotion, emotion_id, percent = self.__convert_filename_to_emotion_and_id(row['stimFile'])
+                        new_row['Latency'] += self.image_presentation_time
+                        new_row['Percent Emotion'] = percent
+                        new_row['ID'] = emotion_id
+                        new_row['Stimulus Emotion'] = curr_emotion
+                        new_row['Stimulus Gender'] = self.__determine_gender(emotion_id)
+                        new_row['Stimulus Ethnicity'] = self.__determine_ethnicity(emotion_id)
+                        new_row['Photonum'] += 1
 
-
-                    photo_num += 1
+            self.__write_new_rows(new_rows, file)
 
     def __init_new_row(self):
         return {'Participant': "", 'trial': "", 'ID': "", 'Stimulus Gender': "",
-                'Stimulus Ethnicity': "", 'Stimulus Emotion': "", 'Response': 0, 'Latency': 0, 'Percent Emotion': -1, 'Photonum': -1}
+                'Stimulus Ethnicity': "", 'Stimulus Emotion': "", 'Response': 0, 'Latency': 0, 'Percent Emotion': 0, 'Photonum': 0}
 
 
     def __convert_filename_to_emotion_and_id(self, filename):
@@ -102,10 +92,11 @@ class Parser:
             writer = csv.writer(csv_file, delimiter=' ')
 
 
-    def __write_new_rows(new_rows, file):
-        new_file_name = file + '-processed'
-        with open(file + '-processed', 'w') as csv_file:
-            writer = csv.DictWriter(new_file_name, fieldnames=self.headers)
+    def __write_new_rows(self, new_rows, file):
+        print(file)
+        new_file_name = file + '-processed.csv'
+        with open(new_file_name, 'w') as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=self.headers)
             writer.writeheader()
 
             for row in new_rows:

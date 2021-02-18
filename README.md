@@ -1,7 +1,7 @@
 # emotion-online-parser
 A data parser for UBC's Social Health Lab emotion task - online version
 
-# Development
+## Development
 To run the application ensure you have python version 3.8.6
 
 Install necessary dependencies
@@ -10,8 +10,8 @@ Install necessary dependencies
 To run
 ``` python main.py ```
 
-# Deployment
+## Deployment
 Uses pyinstaller to bundle the application
 
-# More information:
+## More information:
 https://blogs.ubc.ca/teenstudy/

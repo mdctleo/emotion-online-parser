@@ -1,5 +1,6 @@
 import csv
 import re
+import os
 from stimulus_info import stimulus_info
 
 class Parser:
@@ -97,16 +98,25 @@ class Parser:
 
         return results
 
-    def __construct_new_csv(self, file):
-        with open(file.split('.')[0] + '-processed.csv', 'w', newline='') as csv_file:
-            writer = csv.writer(csv_file, delimiter=' ')
-
 
     def __write_new_rows(self, new_rows, file):
-        new_file_name = file + '-processed.csv'
+        dir = self.__create_processed_dir(file)
+        processed_file_name = os.path.basename(file).split('.')[0] + '-processed.csv'
+        new_file_name = os.path.join(dir, processed_file_name)
+        
         with open(new_file_name, 'w') as csv_file:
             writer = csv.DictWriter(csv_file, fieldnames=self.headers)
             writer.writeheader()
 
             for row in new_rows:
                 writer.writerow(row)
+
+    def __create_processed_dir(self, file):
+        dir = os.path.join(os.path.dirname(file), 'processed')
+        try:
+            os.makedirs(dir)
+        except FileExistsError as e:
+            print(e)
+            pass
+
+        return dir

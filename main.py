@@ -34,7 +34,7 @@ class Application(tk.Frame):
         try:
             parser.parse()
             self.text.insert(tk.END, "SUCCESS :)\n", 'success')
-        except e:
+        except Error as e:
             self.text.insert(tk.END, "FAILED :(\n", 'fail')
 
 

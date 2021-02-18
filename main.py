@@ -13,8 +13,11 @@ class Application(tk.Frame):
 
     def create_widgets(self):
         self.text = tk.Text(self)
-        self.text.insert(tk.INSERT, "Emotion Online Parser")
+        self.text.insert(tk.INSERT, "Emotion Online Parser\n")
         self.text.pack(side="top")
+        self.text.tag_config('loading', foreground="deep sky blue")
+        self.text.tag_config('success', foreground="green2")
+        self.text.tag_config('fail', foreground="red")
         # self.text.pack(side="top")
 
         self.open = tk.Button(self, text="OPEN FILES", fg="green", command=self.open_files)
@@ -26,9 +29,13 @@ class Application(tk.Frame):
 
     def open_files(self):
         files = tk.filedialog.askopenfilenames(title="Select Files to parse", filetypes=[("csv files","*.csv")])
+        self.text.insert(tk.END, "LOADING.....\n", 'loading')
         parser = Parser(list(files))
-        parser.parse()
-
+        try:
+            parser.parse()
+            self.text.insert(tk.END, "SUCCESS :)\n", 'success')
+        except e:
+            self.text.insert(tk.END, "FAILED :(\n", 'fail')
 
 
 

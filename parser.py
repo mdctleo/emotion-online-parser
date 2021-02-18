@@ -98,12 +98,11 @@ class Parser:
 
         return results
 
-
     def __write_new_rows(self, new_rows, file):
         dir = self.__create_processed_dir(file)
         processed_file_name = os.path.basename(file).split('.')[0] + '-processed.csv'
         new_file_name = os.path.join(dir, processed_file_name)
-        
+
         with open(new_file_name, 'w') as csv_file:
             writer = csv.DictWriter(csv_file, fieldnames=self.headers)
             writer.writeheader()

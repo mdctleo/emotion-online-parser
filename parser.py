@@ -12,7 +12,7 @@ class Parser:
         self.headers= ['Participant', 'trial', 'ID',
                        'Stimulus Gender', 'Stimulus Ethnicity', 'Stimulus Emotion',
                        'Response', 'Accuracy', 'Latency', 'Percent Emotion', 'Photonum']
-        self.image_presentation_time = 0.1
+        self.image_presentation_time = 0.25
 
     def parse(self):
         self.__read_files()

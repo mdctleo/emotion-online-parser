@@ -21,41 +21,37 @@ class Parser:
         for file in self.files:
             with open(file) as csv_file:
                 reader = csv.DictReader(csv_file, delimiter=',')
-                participant = file.split('/')[-1].split('_')[0]
                 new_rows = []
-                prev_emotion_id = ""
                 new_row = self.__init_new_row()
                 practice_trial_count = 1
                 trial_count = 1
 
                 for row in reader:
+
                     if row['space_pressed_practice.rt'] != '':
                         new_row['Latency'] += float(row['space_pressed_practice.rt'])
                         new_row['trial'] = "P" + str(practice_trial_count)
                         practice_trial_count += 1
+                        self.__write_new_row_meta(row, new_row)
                     elif row['space_pressed.rt'] != '':
                         new_row['Latency'] += float(row['space_pressed.rt'])
                         new_row['trial'] = trial_count
                         trial_count += 1
+                        self.__write_new_row_meta(row, new_row)
                     elif row['space_pressed_2.rt'] != '':
                         new_row['Latency'] += float(row['space_pressed_2.rt'])
                         new_row['trial'] = trial_count
                         trial_count += 1
+                        self.__write_new_row_meta(row, new_row)
                     elif row['key_resp.keys'] != '' and row['key_resp.rt'] != '':
                         new_row['Latency'] += float(row['key_resp.rt'])
                         new_row['Response'] = row['key_resp.keys']
-                        new_row['Accuracy'] = self.__determine_accuracy(curr_emotion, row['key_resp.keys'])
-                        new_row['Participant'] = participant
+                        new_row['Accuracy'] = self.__determine_accuracy(new_row['Stimulus Emotion'], row['key_resp.keys'])
+                        new_row['Participant'] = row['participant']
                         new_rows.append(new_row)
                         new_row = self.__init_new_row()
                     else:
-                        curr_emotion, emotion_id, percent = self.__convert_filename_to_emotion_and_id(row['stimFile'])
                         new_row['Latency'] += self.image_presentation_time
-                        new_row['Percent Emotion'] = percent
-                        new_row['ID'] = emotion_id
-                        new_row['Stimulus Emotion'] = curr_emotion
-                        new_row['Stimulus Gender'] = self.__determine_gender(emotion_id)
-                        new_row['Stimulus Ethnicity'] = self.__determine_ethnicity(emotion_id)
                         new_row['Photonum'] += 1
 
             self.__write_new_rows(new_rows, file)
@@ -64,6 +60,13 @@ class Parser:
         return {'Participant': "", 'trial': "", 'ID': "", 'Stimulus Gender': "",
                 'Stimulus Ethnicity': "", 'Stimulus Emotion': "", 'Response': 0, 'Latency': 0, 'Percent Emotion': 0, 'Photonum': 0}
 
+    def __write_new_row_meta(self, row, new_row):
+        curr_emotion, emotion_id, percent = self.__convert_filename_to_emotion_and_id(row['stimFile'])
+        new_row['Percent Emotion'] = percent
+        new_row['ID'] = emotion_id
+        new_row['Stimulus Emotion'] = curr_emotion
+        new_row['Stimulus Gender'] = self.__determine_gender(emotion_id)
+        new_row['Stimulus Ethnicity'] = self.__determine_ethnicity(emotion_id)
 
     def __convert_filename_to_emotion_and_id(self, filename):
         if filename is None:
